@@ -1,6 +1,6 @@
 [Server]
 Count=1
-IP0=185.177.27.122
+IP0=127.0.0.1
 
 [Version]
 Files=2395
