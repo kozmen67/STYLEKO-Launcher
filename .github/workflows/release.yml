@@ -38,3 +38,60 @@ jobs:
           name: STYLEKO-Launcher-release-runtime
           path: STYLEKO.Launcher\bin\x86\Release\net48\
           if-no-files-found: error
+
+      - name: Create public unsigned release package
+        shell: pwsh
+        run: |
+          $src = "STYLEKO.Launcher\bin\x86\Release\net48"
+          $stage = "release-package"
+          $dist = "dist"
+          Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item $dist -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item $stage -ItemType Directory -Force | Out-Null
+          New-Item $dist -ItemType Directory -Force | Out-Null
+          $files = @(
+            "Launcher.exe",
+            "Launcher.exe.config",
+            "launcher_notice.html",
+            "Microsoft.Web.WebView2.Core.dll",
+            "Microsoft.Web.WebView2.WinForms.dll",
+            "WebView2Loader.dll"
+          )
+          foreach ($file in $files) {
+            Copy-Item (Join-Path $src $file) (Join-Path $stage $file) -Force
+          }
+          $hash = (Get-FileHash (Join-Path $src "Launcher.exe") -Algorithm SHA256).Hash
+          @"
+          STYLEKO Launcher v1.0.0.2 - UNSIGNED PUBLIC RELEASE
+
+          This package contains the open-source STYLEKO Windows launcher component.
+          It is intended for an existing STYLEKO game installation.
+
+          Launcher.exe SHA-256:
+          $hash
+
+          Architecture:
+          Windows x86
+
+          Authenticode status:
+          Unsigned
+
+          Required existing STYLEKO client files/assets:
+          - Server.ini
+          - Path.ini
+          - KnightOnLine.exe
+          - Option.exe
+          - StyleKO\LauncherWeb\
+          - StyleKO\Guard\
+
+          Source:
+          https://github.com/kozmen67/STYLEKO-Launcher
+          "@ | Set-Content (Join-Path $stage "README.txt") -Encoding UTF8
+          Compress-Archive -Path "$stage\*" -DestinationPath "$dist\STYLEKO-Launcher-v1.0.0.2-unsigned.zip" -Force
+
+      - name: Upload public unsigned release package
+        uses: actions/upload-artifact@v4
+        with:
+          name: STYLEKO-Launcher-public-release
+          path: dist\STYLEKO-Launcher-v1.0.0.2-unsigned.zip
+          if-no-files-found: error
