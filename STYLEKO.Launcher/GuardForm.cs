@@ -34,7 +34,7 @@ namespace Styleko.Launcher
             string html = Path.Combine(_root, "StyleKO", "Guard", "preview.html");
             if (!File.Exists(html))
             {
-                MessageBox.Show("StyleKO\Guard\preview.html bulunamadi.", "STYLEKO Guard", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Guard onizleme dosyasi bulunamadi: " + html, "STYLEKO Guard", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
 
@@ -51,12 +51,14 @@ namespace Styleko.Launcher
                 {
                     string msg;
                     try { msg = e.TryGetWebMessageAsString(); } catch { return; }
+
                     if (string.Equals(msg, "guard-complete", StringComparison.OrdinalIgnoreCase))
                     {
                         _completion.TrySetResult(true);
                         Hide();
                     }
                 };
+
                 _web.Source = new Uri(html);
                 Show(owner);
                 BringToFront();
@@ -64,9 +66,8 @@ namespace Styleko.Launcher
             }
             catch (Exception ex)
             {
-                MessageBox.Show("STYLEKO Guard browser surface olusturulamadi.
-
-" + ex.Message, "STYLEKO Guard", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("STYLEKO Guard browser surface olusturulamadi." + Environment.NewLine + Environment.NewLine + ex.Message,
+                    "STYLEKO Guard", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
         }
