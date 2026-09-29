@@ -41,9 +41,11 @@ Requirements:
 
 Open `STYLEKO.Launcher.sln`, select `Release | x86`, then Build Solution.
 
-Output:
+Normal Release output:
 
-`STYLEKO.Launcher\bin\x86\Release\net48\Launcher_TEST.exe`
+`STYLEKO.Launcher\bin\x86\Release\net48\Launcher.exe`
+
+The validation GitHub Actions workflow overrides the assembly name to `Launcher_TEST.exe` so it cannot accidentally replace a production launcher during compatibility testing.
 
 The project pins Microsoft WebView2 SDK `1.0.4258.31`.
 
@@ -59,17 +61,11 @@ Do not replace the production launcher.
 6. Then validate Start/Guard/game launch.
 7. Do not rename or replace the production `Launcher.exe` until all checks pass.
 
-## Final executable name
+## Release artifact
 
-After compatibility testing, change:
+The release workflow builds `Launcher.exe` from the public repository on a GitHub-hosted Windows runner. The dedicated signing-input artifact contains only `Launcher.exe`; third-party runtime DLLs are not submitted as STYLEKO binaries for signing.
 
-`<AssemblyName>Launcher_TEST</AssemblyName>`
-
-to:
-
-`<AssemblyName>Launcher</AssemblyName>`
-
-and rebuild from the public GitHub repository/CI used for signing.
+The launcher updates files only inside the STYLEKO game installation directory as part of its normal patching function. It does not install a Windows service or intentionally change operating-system security settings.
 
 ## Signing target
 
