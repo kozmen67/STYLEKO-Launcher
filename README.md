@@ -74,3 +74,12 @@ and rebuild from the public GitHub repository/CI used for signing.
 ## Signing target
 
 The intended next stage is SignPath Foundation. The repository should remain public and every signed binary should be produced by the CI workflow from the repository source. Do not upload the old closed-source `Launcher.exe` as a signing input.
+
+
+## Code signing policy
+
+Free code signing provided by SignPath.io, certificate by SignPath Foundation.
+
+See [CODE_SIGNING_POLICY.md](CODE_SIGNING_POLICY.md) for build-origin, team-role, approval, and artifact rules.
+
+See [PRIVACY.md](PRIVACY.md) for the launcher's network and privacy behavior.
