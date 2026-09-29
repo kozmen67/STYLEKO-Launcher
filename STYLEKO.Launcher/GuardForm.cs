@@ -10,6 +10,10 @@ namespace Styleko.Launcher
 {
     internal sealed class GuardForm : Form
     {
+        private const int GuardWidth = 512;
+        private const int GuardHeight = 300;
+        private const int ScreenMargin = 18;
+
         private readonly string _root;
         private readonly WebView2 _web = new WebView2();
         private readonly TaskCompletionSource<bool> _completion = new TaskCompletionSource<bool>();
@@ -19,13 +23,18 @@ namespace Styleko.Launcher
             _root = root;
             Text = "STYLEKO Guard";
             FormBorderStyle = FormBorderStyle.None;
-            StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(512, 300);
+            StartPosition = FormStartPosition.Manual;
+            AutoScaleMode = AutoScaleMode.None;
+            ClientSize = new Size(GuardWidth, GuardHeight);
             MinimumSize = MaximumSize = Size;
+            Padding = Padding.Empty;
             ShowInTaskbar = false;
             TopMost = true;
+
             _web.Dock = DockStyle.Fill;
+            _web.Margin = Padding.Empty;
             Controls.Add(_web);
+
             FormClosed += (s, e) => _completion.TrySetResult(false);
         }
 
@@ -43,10 +52,13 @@ namespace Styleko.Launcher
                 string userData = Path.Combine(_root, ".StyleKO.Guard.WebView2");
                 CoreWebView2Environment env = await CoreWebView2Environment.CreateAsync(null, userData);
                 await _web.EnsureCoreWebView2Async(env);
+
+                _web.ZoomFactor = 1.0;
                 _web.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
                 _web.CoreWebView2.Settings.AreDevToolsEnabled = false;
                 _web.CoreWebView2.Settings.IsStatusBarEnabled = false;
                 _web.CoreWebView2.Settings.IsZoomControlEnabled = false;
+
                 _web.CoreWebView2.WebMessageReceived += (s, e) =>
                 {
                     string msg;
@@ -60,16 +72,38 @@ namespace Styleko.Launcher
                 };
 
                 _web.Source = new Uri(html);
+
+                PositionAtBottomRight(owner);
                 Show(owner);
                 BringToFront();
+
                 return await _completion.Task;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("STYLEKO Guard browser surface olusturulamadi." + Environment.NewLine + Environment.NewLine + ex.Message,
-                    "STYLEKO Guard", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "STYLEKO Guard browser surface olusturulamadi." + Environment.NewLine + Environment.NewLine + ex.Message,
+                    "STYLEKO Guard",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
                 return false;
             }
+        }
+
+        private void PositionAtBottomRight(IWin32Window owner)
+        {
+            Screen screen;
+
+            if (owner != null && owner.Handle != IntPtr.Zero)
+                screen = Screen.FromHandle(owner.Handle);
+            else
+                screen = Screen.PrimaryScreen;
+
+            Rectangle area = screen.WorkingArea;
+            int x = area.Right - Width - ScreenMargin;
+            int y = area.Bottom - Height - ScreenMargin;
+
+            Location = new Point(Math.Max(area.Left, x), Math.Max(area.Top, y));
         }
     }
 }
