@@ -12,7 +12,7 @@ This release is intentionally **unsigned**. It is published before the SignPath 
 - Architecture: Windows x86
 - Product: STYLEKO Launcher
 - Version: 1.0.0.2
-- SHA-256: `0911033439035F636AE1D637E7E554AB14BED349DEC499B840158D3685B82DA6`
+- SHA-256: `F6D4ACC3BC08631A45AF5978F4BF6701BC038042074CC1B80D3473CFE0417346`
 - Authenticode: unsigned
 
 ## Functionality
