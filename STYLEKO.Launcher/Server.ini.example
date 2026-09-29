@@ -1,0 +1,10 @@
+[Server]
+Count=1
+IP0=185.177.27.122
+
+[Version]
+Files=2395
+[IncludeExe]
+Last=2369
+[XignCode]
+Error=0
