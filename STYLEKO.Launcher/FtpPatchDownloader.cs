@@ -33,6 +33,7 @@ namespace Styleko.Launcher
                     int read = await input.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
                     if (read <= 0)
                         break;
+
                     await output.WriteAsync(buffer, 0, read, token).ConfigureAwait(false);
                     done += read;
                     progress?.Invoke(done, total);
@@ -45,9 +46,10 @@ namespace Styleko.Launcher
             string host = (server ?? string.Empty).Trim();
             if (!host.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
                 host = "ftp://" + host;
+
             host = host.TrimEnd('/');
-            string path = (remotePath ?? string.Empty).Replace('\', '/').Trim('/');
-            string file = (fileName ?? string.Empty).Replace('\', '/').TrimStart('/');
+            string path = (remotePath ?? string.Empty).Replace((char)92, '/').Trim('/');
+            string file = (fileName ?? string.Empty).Replace((char)92, '/').TrimStart('/');
             string url = host + "/" + (path.Length > 0 ? path + "/" : string.Empty) + file;
             return new Uri(url);
         }
