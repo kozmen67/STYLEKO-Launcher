@@ -1,0 +1,15 @@
+.vs/
+bin/
+obj/
+packages/
+*.user
+*.suo
+*.pdb
+*.log
+.StyleKO.Launcher.WebView2/
+.StyleKO.Guard.WebView2/
+Server.ini
+Path.ini
+KnightOnLine.exe
+Option.exe
+*.zip
