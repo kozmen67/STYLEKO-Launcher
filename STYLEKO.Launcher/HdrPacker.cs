@@ -79,14 +79,16 @@ namespace Styleko.Launcher
                 int originalCount = rowCount;
 
                 var looseFiles = Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories)
-                    .Where(p => !p.EndsWith(".hdr", StringComparison.OrdinalIgnoreCase) && !p.EndsWith(".src", StringComparison.OrdinalIgnoreCase))
+                    .Where(p => !p.EndsWith(".hdr", StringComparison.OrdinalIgnoreCase)
+                             && !p.EndsWith(".src", StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
                 foreach (string file in looseFiles)
                 {
-                    string relative = MakeRelative(dir, file).Replace('/', '\');
+                    string relative = MakeRelative(dir, file).Replace('/', Path.DirectorySeparatorChar);
                     long offset = src.Length;
                     long length = new FileInfo(file).Length;
+
                     if (offset > uint.MaxValue || length > uint.MaxValue)
                         throw new InvalidDataException("HDR/SRC 4GB sinirini asti: " + file);
 
@@ -112,7 +114,7 @@ namespace Styleko.Launcher
                         rowCount++;
                     }
 
-                    inputDelete(file);
+                    File.Delete(file);
                 }
 
                 if (rowCount != originalCount)
@@ -129,6 +131,7 @@ namespace Styleko.Launcher
             _repairCount = 10;
             string hdrPath = Path.Combine(dir, name + ".hdr");
             string srcPath = Path.Combine(dir, name + ".src");
+
             if (!File.Exists(hdrPath) || !File.Exists(srcPath))
                 return;
 
@@ -137,12 +140,14 @@ namespace Styleko.Launcher
             {
                 if (hdr.Length < 4)
                     return;
+
                 int rowCount = checked((int)ReadUInt32(hdr));
                 for (int i = 0; i < rowCount; i++)
                 {
                     int nameLen = checked((int)ReadUInt32(hdr));
                     if (nameLen < 0 || nameLen > 1024 * 1024)
                         throw new InvalidDataException("HDR dosya adi uzunlugu gecersiz.");
+
                     byte[] nameBytes = ReadExact(hdr, nameLen);
                     string relative = Encoding.Default.GetString(nameBytes);
                     uint offset = ReadUInt32(hdr);
@@ -153,7 +158,10 @@ namespace Styleko.Launcher
                     if (!target.StartsWith(safeRoot, StringComparison.OrdinalIgnoreCase))
                         throw new InvalidDataException("HDR guvenli olmayan yol iceriyor: " + relative);
 
-                    Directory.CreateDirectory(Path.GetDirectoryName(target));
+                    string parent = Path.GetDirectoryName(target);
+                    if (!string.IsNullOrEmpty(parent))
+                        Directory.CreateDirectory(parent);
+
                     src.Position = offset;
                     byte[] bytes = ReadExact(src, checked((int)length));
                     File.WriteAllBytes(target, bytes);
@@ -167,6 +175,7 @@ namespace Styleko.Launcher
         private static Dictionary<string, HeaderEntry> ReadHeader(FileStream hdr, out int rowCount)
         {
             var result = new Dictionary<string, HeaderEntry>(StringComparer.OrdinalIgnoreCase);
+
             if (hdr.Length < 4)
             {
                 hdr.Position = 0;
@@ -177,11 +186,13 @@ namespace Styleko.Launcher
 
             hdr.Position = 0;
             rowCount = checked((int)ReadUInt32(hdr));
+
             for (int i = 0; i < rowCount; i++)
             {
                 int nameLen = checked((int)ReadUInt32(hdr));
                 if (nameLen < 0 || nameLen > 1024 * 1024)
                     throw new InvalidDataException("HDR kaydi gecersiz.");
+
                 byte[] nameBytes = ReadExact(hdr, nameLen);
                 string name = Encoding.Default.GetString(nameBytes);
                 long offsetPosition = hdr.Position;
@@ -189,6 +200,7 @@ namespace Styleko.Launcher
                 ReadUInt32(hdr);
                 result[name] = new HeaderEntry { OffsetFieldPosition = offsetPosition };
             }
+
             return result;
         }
 
@@ -201,7 +213,8 @@ namespace Styleko.Launcher
         {
             Uri rootUri = new Uri(AppendSlash(Path.GetFullPath(root)));
             Uri fileUri = new Uri(Path.GetFullPath(file));
-            return Uri.UnescapeDataString(rootUri.MakeRelativeUri(fileUri).ToString()).Replace('/', Path.DirectorySeparatorChar);
+            return Uri.UnescapeDataString(rootUri.MakeRelativeUri(fileUri).ToString())
+                .Replace('/', Path.DirectorySeparatorChar);
         }
 
         private static string AppendSlash(string path)
@@ -211,14 +224,16 @@ namespace Styleko.Launcher
             return path;
         }
 
-        private static void inputDelete(string path)
-        {
-            File.Delete(path);
-        }
-
         private static void TryDelete(string path)
         {
-            try { if (File.Exists(path)) File.Delete(path); } catch { }
+            try
+            {
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+            catch
+            {
+            }
         }
 
         private static uint ReadUInt32(Stream stream)
@@ -229,7 +244,13 @@ namespace Styleko.Launcher
 
         private static void WriteUInt32(Stream stream, uint value)
         {
-            byte[] b = { (byte)value, (byte)(value >> 8), (byte)(value >> 16), (byte)(value >> 24) };
+            byte[] b =
+            {
+                (byte)value,
+                (byte)(value >> 8),
+                (byte)(value >> 16),
+                (byte)(value >> 24)
+            };
             stream.Write(b, 0, 4);
         }
 
@@ -237,6 +258,7 @@ namespace Styleko.Launcher
         {
             byte[] b = new byte[count];
             int offset = 0;
+
             while (offset < count)
             {
                 int read = stream.Read(b, offset, count - offset);
@@ -244,6 +266,7 @@ namespace Styleko.Launcher
                     throw new EndOfStreamException();
                 offset += read;
             }
+
             return b;
         }
     }
